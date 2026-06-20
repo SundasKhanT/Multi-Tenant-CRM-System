@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+   provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+enum Role{
+  ADMIN
+  MEMBER
+}
+
+model User {
+  id             String   @id @default(uuid())
+  name           String
+  email          String   @unique
+  password       String
+  role           Role     @default(MEMBER)
+  organizationId String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization      Organization  @relation(fields: [organizationId], references: [id])
+  assignedCustomers Customer[]    @relation("AssignedCustomers")
+  createdNotes      Note[]        @relation("NoteCreatedBy")
+  activityLogs      ActivityLog[] @relation("PerformedBy")
+
+  @@index([organizationId])
+  @@map("users")
+}
+enum ActivityAction {
+  CUSTOMER_CREATED
+  CUSTOMER_UPDATED
+  CUSTOMER_DELETED
+  CUSTOMER_RESTORED
+  NOTE_ADDED
+  CUSTOMER_ASSIGNED
+}
+
+
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users     User[]
+  customers Customer[]
+
+  @@map("organizations")
+}
+
+
+
+
+
+model Customer {
+  id             String    @id @default(uuid())
+  name           String
+  email          String
+  phone          String?
+  organizationId String
+  assignedToId   String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+  assignedTo   User?        @relation("AssignedCustomers", fields: [assignedToId], references: [id])
+  notes        Note[]
+
+  @@index([organizationId, deletedAt])
+  @@index([assignedToId, deletedAt])
+  @@index([organizationId, name])
+  @@index([organizationId, email])
+  @@map("customers")
+}
+
+model Note {
+  id             String   @id @default(uuid())
+  content        String
+  customerId     String
+  organizationId String
+  createdById    String
+  createdAt      DateTime @default(now())
+
+  customer  Customer @relation(fields: [customerId], references: [id])
+  createdBy User     @relation("NoteCreatedBy", fields: [createdById], references: [id])
+
+  @@index([customerId])
+  @@index([organizationId])
+  @@map("notes")
+}
+
+model ActivityLog {
+  id             String         @id @default(uuid())
+  entityType     String
+  entityId       String
+  action         ActivityAction
+  organizationId String
+  performedById  String
+  timestamp      DateTime       @default(now())
+
+  performedBy User @relation("PerformedBy", fields: [performedById], references: [id])
+
+  @@index([organizationId, entityType, entityId])
+  @@index([organizationId, timestamp])
+  @@map("activity_logs")
+}

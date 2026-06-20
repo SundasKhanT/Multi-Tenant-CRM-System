@@ -1,0 +1,14 @@
+{
+  "organizations": [
+    {
+      "name": "Acme Inc",
+      "adminEmail": "admin@acme.com",
+      "adminPassword": "password123"
+    },
+    {
+      "name": "Globex Corp",
+      "adminEmail": "admin@globex.com",
+      "adminPassword": "password123"
+    }
+  ]
+}
