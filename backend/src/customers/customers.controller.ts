@@ -20,9 +20,12 @@ import { UpdateCustomerDto } from './dtos/update-customer.dto';
 import { QueryCustomerDto } from './dtos/query-customer.dto';
 import { AssignCustomerDto } from './dtos/assign-customer.dto';
 import { BulkAssignCustomerDto } from './dtos/bulk-assign-customer.dto';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/role.decorator';
+import { Role } from '@prisma/client';
 
 @Controller('customers')
-@UseGuards(AuthGuard('jwt'))
+@UseGuards(AuthGuard('jwt'), RolesGuard)
 export class CustomersController {
   constructor(private readonly customersService: CustomersService) {}
 
@@ -71,6 +74,7 @@ export class CustomersController {
     return this.customersService.update(id, dto, user.organizationId, user.id);
   }
 
+  @Roles(Role.ADMIN)
   @Delete(':id')
   async remove(
     @Param('id') id: string,
@@ -79,6 +83,7 @@ export class CustomersController {
     return this.customersService.softDelete(id, user.organizationId, user.id);
   }
 
+  @Roles(Role.ADMIN)
   @Patch(':id/restore')
   async restore(
     @Param('id') id: string,

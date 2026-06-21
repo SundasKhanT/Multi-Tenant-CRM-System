@@ -34,6 +34,7 @@ export class UsersController {
   }
 
   @Get()
+  @Roles(Role.ADMIN)
   async findAll(@CurrentUser() currentUser: CurrentUserPayload) {
     return this.usersService.findAllInOrganization(currentUser.organizationId);
   }
