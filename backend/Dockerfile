@@ -1,41 +1,22 @@
-# ---- Build stage ----
-FROM node:22-alpine AS builder
+FROM node:22-alpine
 
 WORKDIR /app
 
-# Install deps (including dev deps needed for nest build)
+# Install dependencies (including dev ones needed for build)
 COPY package*.json ./
 RUN npm ci
 
-# Copy the rest of the source
+# Copy your source code and Prisma schema
 COPY . .
 
-# Generate Prisma client (uses your schema.prisma, including custom output path if set)
+# Generate Prisma client
 RUN npx prisma generate
 
-# Build the NestJS app -> outputs to /app/dist
+# Build the NestJS app → creates /app/dist
 RUN npm run build
 
-# ---- Production stage ----
-FROM node:22-alpine AS production
-
-WORKDIR /app
-
-ENV NODE_ENV=production
-
-# Copy only what's needed to run
-COPY package*.json ./
-RUN npm ci --omit=dev
-
-# Copy built output and database schema from the builder stage
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/prisma ./prisma
-
-# CRITICAL FIX: Copy both the engine and the loader for Prisma to prevent runtime crashes
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
-
+# Expose port (match your app's port)
 EXPOSE 3000
 
-# FIX: Use the npm script to ensure NestJS handles runtime path resolutions correctly
-CMD ["npm", "run", "start:prod"]
+# Run the compiled app
+CMD ["node", "dist/main"]
