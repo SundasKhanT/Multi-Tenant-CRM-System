@@ -60,6 +60,7 @@ export function CustomerNotesDialog({
       await api.post(`/customers/${customer.id}/notes`, { content });
       toast.success('Note added successfully');
       setContent('');
+       onOpenChange(false);
       fetchNotes();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to add note';
