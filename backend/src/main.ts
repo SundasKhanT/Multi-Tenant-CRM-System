@@ -15,8 +15,13 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Allow frontend to call backend
+  // app.enableCors({
+  //   origin: 'http://localhost:3001', // frontend port
+  //   credentials: true,
+  // });
+
   app.enableCors({
-    origin: 'http://localhost:3001', // frontend port
+    origin: process.env.FRONTEND_URL || 'http://localhost:3001',
     credentials: true,
   });
 
