@@ -19,4 +19,4 @@ RUN npm run build
 EXPOSE 3000
 
 # Run the compiled app
-CMD npx prisma migrate deploy && node dist/src/main
+CMD ls -la /app/dist && ls -la /app/dist/src && npx prisma migrate deploy && node dist/src/main
