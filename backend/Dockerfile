@@ -27,11 +27,15 @@ ENV NODE_ENV=production
 COPY package*.json ./
 RUN npm ci --omit=dev
 
-# Copy built output and generated Prisma client from the builder stage
+# Copy built output and database schema from the builder stage
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/prisma ./prisma
+
+# CRITICAL FIX: Copy both the engine and the loader for Prisma to prevent runtime crashes
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
 
 EXPOSE 3000
 
-CMD ["node", "dist/main"]
+# FIX: Use the npm script to ensure NestJS handles runtime path resolutions correctly
+CMD ["npm", "run", "start:prod"]
